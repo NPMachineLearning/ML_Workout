@@ -1,0 +1,10 @@
+version: "3.7"
+services:
+  sftp:
+    # https://hub.docker.com/r/atmoz/sftp
+    image: atmoz/sftp
+    ports:
+      - 22:22
+    volumes:
+      - ${PWD}/data_lake/files/output_labels:/home/usr/upload
+    command: usr:pass:1001

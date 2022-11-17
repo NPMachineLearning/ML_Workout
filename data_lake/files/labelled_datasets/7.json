@@ -1,7 +1,7 @@
 {
-  "id": 5,
+  "id": 7,
   "created_username": " tomneo2004@gmail.com, 1",
-  "created_ago": "2\u00a0days, 3\u00a0hours",
+  "created_ago": "6\u00a0minutes",
   "completed_by": {
     "id": 1,
     "first_name": "",
@@ -9,16 +9,16 @@
     "email": "tomneo2004@gmail.com"
   },
   "task": {
-    "id": 9,
+    "id": 11,
     "data": {
-      "image": "/data/local-files/?d=datasets/dataset2/squat.jpeg"
+      "image": "/data/local-files/?d=datasets/dataset2/pullup.jpeg"
     },
     "meta": {},
-    "created_at": "2022-11-15T04:02:14.634557Z",
-    "updated_at": "2022-11-15T04:02:31.064752Z",
+    "created_at": "2022-11-17T06:59:03.791983Z",
+    "updated_at": "2022-11-17T06:59:22.443952Z",
     "is_labeled": true,
     "overlap": 1,
-    "inner_id": 5,
+    "inner_id": 7,
     "total_annotations": 1,
     "cancelled_annotations": 0,
     "total_predictions": 0,
@@ -34,10 +34,10 @@
     {
       "value": {
         "choices": [
-          "Squat"
+          "PullUp"
         ]
       },
-      "id": "FEktBtZ1fe",
+      "id": "w7DGWsoiNN",
       "from_name": "choice",
       "to_name": "image",
       "type": "choices",
@@ -46,9 +46,9 @@
   ],
   "was_cancelled": false,
   "ground_truth": false,
-  "created_at": "2022-11-15T04:02:30.543201Z",
-  "updated_at": "2022-11-15T04:02:30.543302Z",
-  "lead_time": 5.687,
+  "created_at": "2022-11-17T06:59:21.855182Z",
+  "updated_at": "2022-11-17T06:59:21.855309Z",
+  "lead_time": 7.25,
   "parent_prediction": null,
   "parent_annotation": null
 }
