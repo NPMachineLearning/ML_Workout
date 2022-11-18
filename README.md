@@ -1,5 +1,3 @@
-[TOC]
-
 # Workout with Machine Learning
 
 Allow machine to learn workout postures from the data that was produced by human. The postures such as push up, pull up and squat...etc. Later the machine can be used to detect certain postures that performed by user.
