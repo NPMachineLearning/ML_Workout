@@ -236,7 +236,6 @@ services:
     networks:
       - airbyte_internal
       - airbyte_public
-      - ml_workout
     depends_on:
       - webapp
       - server
@@ -253,4 +252,6 @@ volumes:
 networks:
   airbyte_public:
   airbyte_internal:
-  ml_workout:
+  bridge:
+    name: "bridge"
+    external: true

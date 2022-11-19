@@ -13,8 +13,8 @@ services:
     volumes:
       - ${PWD}/label_studio/data:/label-studio/data #(optional)
       - ${PWD}/data_lake/files:/label-studio/files
-    networks:
-      - ml_workout
 
 networks:
-  ml_workout:
+  bridge:
+    name: "bridge"
+    external: true
