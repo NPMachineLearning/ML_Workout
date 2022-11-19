@@ -57,6 +57,7 @@ x-airflow-common: &airflow-common
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
     AIRFLOW__API__AUTH_BACKENDS: "airflow.api.auth.backend.basic_auth"
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
+    AIRFLOW__CORE__ENABLE_XCOM_PICKLING: "true"
   volumes:
     - ./dags:/opt/airflow/dags
     - ./logs:/opt/airflow/logs
@@ -281,8 +282,3 @@ services:
 
 volumes:
   postgres-db-volume:
-
-networks:
-  bridge:
-    name: "bridge"
-    external: true

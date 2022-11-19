@@ -9,8 +9,9 @@ services:
     volumes:
       - ${PWD}/data_lake/files/output_labels:/home/usr/upload
     command: usr:pass:1001
+    networks:
+      - airflow_default
 
 networks:
-  bridge:
-    name: "bridge"
+  airflow_default:
     external: true

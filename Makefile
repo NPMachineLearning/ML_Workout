@@ -17,13 +17,22 @@ help:
 init:
 	docker compose -f airflow/docker-compose.yaml up airflow-init
 
+# Airflow network
+.PHONY: create-net
+create-net:
+	docker network create airflow_default
+
+.PHONY: remove-net
+remove-net:
+	docker network rm airflow_default
+
 # Orchestration
 .PHONY: orchestration-up
 orchestration-up: # start container in background
+	docker compose -f airflow/docker-compose.yaml up -d
 	docker compose -f label_studio/docker-compose.yaml up -d
 	docker compose -f airbyte/docker-compose.yaml up -d
 	docker compose -f sftp/docker-compose.yaml up -d
-	docker compose -f airflow/docker-compose.yaml up -d
 
 .PHONY: orchestration-down
 orchestration-down:
@@ -35,20 +44,24 @@ orchestration-down:
 # Label Studio
 .PHONY: label-studio-up
 label-studio-up:
+	$(MAKE) create-net
 	docker compose -f label_studio/docker-compose.yaml up -d
 
 .PHONY: label-studio-down
 label-studio-down:
 	docker compose -f label_studio/docker-compose.yaml down
+	$(MAKE) remove-net
 
 # Airbyte
 .PHONY: airbyte-up
 airbyte-up:
+	$(MAKE) create-net
 	docker compose -f airbyte/docker-compose.yaml up -d
 
 .PHONY: airbyte-down
 airbyte-down:
 	docker compose -f airbyte/docker-compose.yaml down
+	$(MAKE) remove-net
 
 # Airflow
 .PHONY: airflow-up

@@ -252,6 +252,3 @@ volumes:
 networks:
   airbyte_public:
   airbyte_internal:
-  bridge:
-    name: "bridge"
-    external: true
