@@ -1,7 +1,7 @@
 version: "3.7"
 
 services:
-  label_studio:
+  label-studio:
     networks:
       - airflow_default
 

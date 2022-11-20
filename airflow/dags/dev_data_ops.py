@@ -1,6 +1,7 @@
 from airflow.decorators import dag, task
 from airflow.utils.dates import days_ago
-from airflow.operators.bash_operator import BashOperator
+from airflow.exceptions import AirflowException
+import csv
 import requests
 import logging
 
@@ -19,16 +20,27 @@ def task2(x):
 @task(task_id="export")
 def export_annotation():
     response = requests.get(
-                            "http://label_studio:8080/api/projects/2/export",
-                            params={"exportType": "CSV"},
-                            headers={"Authorization": "Token 8823cc4fb910406253548fac3c458e495d6de86c"},
-                            stream=True)
+                            "http://label-studio:8080/api/projects/2/export",
+                            params={"export_type": "CSV"},
+                            headers={"Authorization": "Token 8823cc4fb910406253548fac3c458e495d6de86c"})
+
+    try:                       
+        with open('out.csv', 'wt') as f:
+            writer = csv.writer(f)
+            for line in response.iter_lines():
+                print(line.decode('utf-8'))
+                writer.writerow(line.decode('utf-8'))
+    except Exception as e:
+        print(e)
+        raise AirflowException(e)
+
     return response
 
 @task(task_id="logging")
 def log(x):
-    logging.info(x)
-    print(x)
+    logging.debug(x)
+    print(x.url)
+    print(x.text)
     return x
 
 

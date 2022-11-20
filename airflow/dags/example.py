@@ -23,7 +23,7 @@ def log(x):
     dag_id = "Example",
     description = "Data operation flow",
     default_args = default_args,
-    schedule_interval=None,
+    schedule=None,
     start_date=days_ago(2),
     tags=["dev", "example", "flow"],
 )

@@ -1,7 +1,7 @@
 version: "3.7"
 
 services:
-  label_studio:
+  label-studio:
     environment:
       #run label studio in local docker with local storage
       # https://labelstud.io/guide/start.html#Run-Label-Studio-on-Docker-and-use-local-storage
