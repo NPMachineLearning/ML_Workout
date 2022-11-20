@@ -7,6 +7,8 @@ help:
 	@echo "orchestration-down: tear down orchestration in docker"
 	@echo "label-studio-up: start up label studio in docker"
 	@echo "label-studio-down: tear down label studio in docker"
+	@echo "sftp-up: start up sftp(ftp server) in docker"
+	@echo "sftp-down: tear down sftp(ftp server) in docker"
 	@echo "airbyte-up: start up airbyte in docker"
 	@echo "airbyte-down: tear down airbyte in docker"
 	@echo "airflow-up: start up airflow in docker"
@@ -17,51 +19,62 @@ help:
 init:
 	docker compose -f airflow/docker-compose.yaml up airflow-init
 
-# Airflow network
-.PHONY: create-net
-create-net:
+# Network
+.PHONY: init-network
+init-network:
 	docker network create airflow_default
 
-.PHONY: remove-net
-remove-net:
+.PHONY: rm-network
+rm-network:
 	docker network rm airflow_default
 
 # Orchestration
 .PHONY: orchestration-up
 orchestration-up: # start container in background
-	docker compose -f airflow/docker-compose.yaml up -d
-	docker compose -f label_studio/docker-compose.yaml up -d
-	docker compose -f airbyte/docker-compose.yaml up -d
-	docker compose -f sftp/docker-compose.yaml up -d
+	$(MAKE) airflow-up
+	$(MAKE) label-studio-up
+	$(MAKE) sftp-up
+	$(MAKE) airbyte-up
 
 .PHONY: orchestration-down
 orchestration-down:
-	docker compose -f label_studio/docker-compose.yaml down
-	docker compose -f airbyte/docker-compose.yaml down
-	docker compose -f sftp/docker-compose.yaml down
-	docker compose -f airflow/docker-compose.yaml down
+	$(MAKE) airbyte-down
+	$(MAKE) label-studio-down
+	$(MAKE) sftp-down
+	$(MAKE) airflow-down
 
 # Label Studio
 .PHONY: label-studio-up
 label-studio-up:
-	$(MAKE) create-net
-	docker compose -f label_studio/docker-compose.yaml up -d
+	docker compose -f label_studio/docker-compose.yaml \
+	-f label_studio/docker-compose.override.yaml up -d
 
 .PHONY: label-studio-down
 label-studio-down:
-	docker compose -f label_studio/docker-compose.yaml down
-	$(MAKE) remove-net
+	docker compose -f label_studio/docker-compose.yaml \
+	-f label_studio/docker-compose.override.yaml down
+
+# sftp
+.PHONY: sftp-up
+sftp-up:
+	docker compose -f sftp/docker-compose.yaml \
+	-f sftp/docker-compose.override.yaml up -d
+
+.PHONY: sftp-down
+sftp-down:
+	docker compose -f sftp/docker-compose.yaml \
+	-f sftp/docker-compose.override.yaml down
 
 # Airbyte
 .PHONY: airbyte-up
 airbyte-up:
-	$(MAKE) create-net
-	docker compose -f airbyte/docker-compose.yaml up -d
+	docker compose -f airbyte/docker-compose.yaml \
+	-f airbyte/docker-compose.override.yaml up -d
 
 .PHONY: airbyte-down
 airbyte-down:
-	docker compose -f airbyte/docker-compose.yaml down
-	$(MAKE) remove-net
+	docker compose -f airbyte/docker-compose.yaml \
+	-f airbyte/docker-compose.override.yaml down
 
 # Airflow
 .PHONY: airflow-up

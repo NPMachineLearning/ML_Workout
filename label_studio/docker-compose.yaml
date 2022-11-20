@@ -13,9 +13,3 @@ services:
     volumes:
       - ${PWD}/label_studio/data:/label-studio/data #(optional)
       - ${PWD}/data_lake/files:/label-studio/files
-    networks:
-      - airflow_default
-
-networks:
-  airflow_default:
-    external: true
