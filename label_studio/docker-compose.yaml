@@ -11,5 +11,5 @@ services:
     ports:
       - 8081:8080
     volumes:
-      - ${PWD}/label_studio/data:/label-studio/data #(optional)
-      - ${PWD}/data_lake/files:/label-studio/files
+      - ./data:/label-studio/data #(optional)
+      - ../data_lake/files:/label-studio/files

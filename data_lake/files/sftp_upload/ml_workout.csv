@@ -1,4 +1,8 @@
 image,id,choice,annotator,annotation_id,created_at,updated_at,lead_time
+/data/local-files/?d=datasets/dataset2/pullup23.jpg,16,PullUp,1,12,2022-11-23T07:21:40.551312Z,2022-11-23T07:21:40.551338Z,2.98
+/data/local-files/?d=datasets/squat23.jpg,15,Squat,1,11,2022-11-23T07:07:57.493445Z,2022-11-23T07:07:57.493472Z,6.224
+/data/local-files/?d=datasets/squat8.jpg,14,Squat,1,10,2022-11-23T06:30:16.335147Z,2022-11-23T06:30:16.335173Z,6.084
+/data/local-files/?d=datasets/pushup10.jpg,13,PushUp,1,9,2022-11-23T05:23:11.441584Z,2022-11-23T05:23:11.441611Z,3.917
 /data/local-files/?d=datasets/squat1.jpeg,12,Squat,1,8,2022-11-17T07:06:26.037625Z,2022-11-17T07:11:26.641240Z,18.611
 /data/local-files/?d=datasets/dataset2/pullup.jpeg,11,PullUp,1,7,2022-11-17T06:59:21.855182Z,2022-11-17T06:59:21.855309Z,7.25
 /data/local-files/?d=datasets/dataset2/pushup.jpeg,10,PushUp,1,6,2022-11-17T04:47:18.283708Z,2022-11-17T04:47:18.283771Z,7.542

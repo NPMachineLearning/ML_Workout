@@ -7,5 +7,6 @@ services:
     ports:
       - 22:22
     volumes:
-      - ${PWD}/data_lake/files/output_labels:/home/usr/upload
-    command: usr:pass:1001
+      - ../data_lake/files/sftp_upload:/home/usr/upload
+    command: usr:pass
+    
