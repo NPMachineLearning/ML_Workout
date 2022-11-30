@@ -34,11 +34,11 @@ Select a right data storage is important for raw data or structured data.
   Amazon S3, Azure Blob Storage, Google Cloud Storage are common choices for cloud.
     - [DataWarehouse](https://madewithml.com/courses/mlops/data-stack/#data-warehouse)
     - [Database](https://madewithml.com/courses/mlops/data-stack/#database)
-    - Local storage:
-    To mimic DataLake at local machine we can use [SFTP with Docker](https://hub.docker.com/r/atmoz/sftp) and integrated with airflow through sftp client library.
 
 - **Extract and Load**:
 [Airbyte](https://airbyte.com/) is a tool to extract data in [DataLake](https://madewithml.com/courses/mlops/data-stack/#data-lake) and then load it into destination [DataWarehouse](https://madewithml.com/courses/mlops/data-stack/#data-warehouse). The ability to extract data from multiple source and load data into multiple destination is the key. In addition it can be scheduled.
     - **Intergration**:
     Airflow is able to trigger extract and load task in airbyte.
+    - **Local data source**: We can use [SFTP with Docker](https://hub.docker.com/r/atmoz/sftp) as a source for Airbyte locally. 
+    - **Local data destination**: We can use [Postgres with Docker](https://hub.docker.com/_/postgres) as a destination for Airbyte locally. In addition combine it with [Adminer](https://hub.docker.com/_/adminer) to visualize and manage database easily. 
     
