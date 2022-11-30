@@ -1,51 +1,15 @@
-from airflow.decorators import dag, task
+from airflow.decorators import dag
 from airflow.utils.dates import days_ago
-import requests
+from dataops_utils.label_studio_utils import sync_import_storage, sync_export_storage, export_annotation
+from dataops_utils.sftp_utils import write_csv_to_sftp
 
 default_args = {
     "owner": "airflow",
 }
 
-# project id from label-studio
-LABEL_STUDIO_PROJECT_ID = 2
-LABEL_STUDIO_URL = "http://label-studio:8080"
-LABEL_STUDIO_TOKEN = "8823cc4fb910406253548fac3c458e495d6de86c"
-
-@task(task_id="sync_import_storage")
-def sync_import_storage():
-    # get all import storage information for the project
-    response = requests.get(
-        f"{LABEL_STUDIO_URL}/api/storages/localfiles",
-        params={"project": LABEL_STUDIO_PROJECT_ID},
-        headers={"Authorization": f"Token {LABEL_STUDIO_TOKEN}"})
-    print(response.json())
-
-    # sync all import storage
-    for import_storage in response.json():
-        id = import_storage["id"]
-        response = requests.post(
-                                f"{LABEL_STUDIO_URL}/api/storages/localfiles/{id}/sync",
-                                params={"project": LABEL_STUDIO_PROJECT_ID},
-                                headers={"Authorization": f"Token {LABEL_STUDIO_TOKEN}"})
-        print(response.json())
-
-@task(task_id="sync_export_storage")
-def sync_export_storage():
-    # get all export storage for the project
-    response = requests.get(
-        f"{LABEL_STUDIO_URL}/api/storages/export/localfiles",
-        params={"project": LABEL_STUDIO_PROJECT_ID},
-        headers={"Authorization": f"Token {LABEL_STUDIO_TOKEN}"})
-    print(response.json())
-
-    # sync all export storage
-    for export_storage in response.json():
-        id = export_storage["id"]
-        response = requests.post(
-                                f"{LABEL_STUDIO_URL}/api/storages/export/localfiles/{id}/sync",
-                                params={"project": LABEL_STUDIO_PROJECT_ID},
-                                headers={"Authorization": f"Token {LABEL_STUDIO_TOKEN}"})
-        print(response.text)
+SFTP_HOSTNAME = "sftp"
+SFTP_USERNAME = "usr"
+SFTP_PASSWORD = "pass"
 
 @dag(
     dag_id = "DevLabelStudioStorageSync",
@@ -56,7 +20,19 @@ def sync_export_storage():
     tags=["dev", "labeling", "flow"],
 )
 def dev_labeling_ops():
-    sync_import_storage()
-    sync_export_storage()
+    # sync label studio import and export storage
+    result = sync_import_storage() >> sync_export_storage()
+
+    # export label studio annotation as csv
+    resp_csv =  result >> export_annotation(export_type="CSV")
+
+    # save csv to sftp aka mimic DataLake
+    result = write_csv_to_sftp(
+        csv_data=resp_csv, 
+        filename="ml_workout.csv", 
+        host_name=SFTP_HOSTNAME, 
+        user_name=SFTP_USERNAME, 
+        user_password=SFTP_PASSWORD)
+
 
 dev_labeling_flow = dev_labeling_ops()

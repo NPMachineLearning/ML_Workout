@@ -11,6 +11,8 @@ help:
 	@echo "sftp-down: tear down sftp(ftp server) in docker"
 	@echo "airbyte-up: start up airbyte in docker"
 	@echo "airbyte-down: tear down airbyte in docker"
+	@echo "dbt-up: start up dbt in docker"
+	@echo "dbt-down: tear down dbt in docker"
 	@echo "airflow-up: start up airflow in docker"
 	@echo "airflow-down: tear down airflow in docker"
 
@@ -32,15 +34,19 @@ rm-network:
 .PHONY: orchestration-up
 orchestration-up: # start container in background
 	$(MAKE) airflow-up
+	$(MAKE) warehouse-up
 	$(MAKE) label-studio-up
 	$(MAKE) sftp-up
 	$(MAKE) airbyte-up
+	$(MAKE) dbt-up
 
 .PHONY: orchestration-down
 orchestration-down:
+	$(MAKE) dbt-down
 	$(MAKE) airbyte-down
 	$(MAKE) label-studio-down
 	$(MAKE) sftp-down
+	$(MAKE) warehouse-down
 	$(MAKE) airflow-down
 
 # Label Studio
@@ -75,6 +81,28 @@ airbyte-up:
 airbyte-down:
 	docker compose -f airbyte/docker-compose.yaml \
 	-f airbyte/docker-compose.override.yaml down
+
+# dbt
+.PHONY: dbt-up
+dbt-up:
+	docker compose -f dbt/docker-compose.yaml \
+	-f dbt/docker-compose.override.yaml up -d
+
+.PHONY: dbt-down
+dbt-down:
+	docker compose -f dbt/docker-compose.yaml \
+	-f dbt/docker-compose.override.yaml down
+
+# warehouse database
+.PHONY: warehouse-up
+warehouse-up:
+	docker compose -f warehouse/docker-compose.yaml \
+	-f warehouse/docker-compose.override.yaml up -d
+
+.PHONY: warehouse-down
+warehouse-down:
+	docker compose -f warehouse/docker-compose.yaml \
+	-f warehouse/docker-compose.override.yaml down
 
 # Airflow
 .PHONY: airflow-up

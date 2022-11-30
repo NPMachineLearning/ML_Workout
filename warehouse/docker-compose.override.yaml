@@ -1,0 +1,15 @@
+version: "3.7"
+
+services:
+  warehouse:
+    networks:
+      - airflow_default
+
+  adminer:
+    networks:
+      - airflow_default      
+
+networks:
+  airflow_default:
+    name: "airflow_default"
+    external: true

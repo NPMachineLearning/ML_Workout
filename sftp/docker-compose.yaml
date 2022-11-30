@@ -4,9 +4,12 @@ services:
   sftp:
     # https://hub.docker.com/r/atmoz/sftp
     image: atmoz/sftp
+    container_name: sftp
     ports:
       - 22:22
-    volumes:
-      - ../data_lake/files/sftp_upload:/home/usr/upload
-    command: usr:pass
+    # volumes:
+    #   - data:/home/usr/upload
+    command: usr:pass:::upload
     
+volumes:
+  data:

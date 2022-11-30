@@ -1,0 +1,11 @@
+version: "3.7"
+
+services:
+  dbt:
+    networks:
+      - airflow_default
+      
+networks:
+  airflow_default:
+    name: "airflow_default"
+    external: true

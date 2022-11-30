@@ -1,0 +1,7 @@
+version: "3.7"
+
+services:
+  dbt:
+    image: xemuliam/dbt
+    container_name: dbt
+    command: dbt init dbt_transform
