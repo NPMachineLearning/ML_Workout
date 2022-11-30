@@ -9,20 +9,28 @@ Increaseing performance in workout without human intervention is the goal.
 ## [Flow chart](https://whimsical.com/ml-workout-active-learning-labelling-flow-RfPRWopbAnZ1vMbQWoHS7m)
 
 ## Note
-In local development, each tool is running in individual container in [Docker](https://www.docker.com/). Each tool has its own docker-compose.yaml file in addition there is a docker-compose.override.yaml file to override tool's network in docker, thus each container is able to communicate with each other such as consuming web api.
+In local development, each tool is running in individual container in [Docker](https://www.docker.com/). Each tool has its own docker-compose.yaml file. In addition there is a docker-compose.override.yaml file to override tool's yaml default setting.
+
+Most containers are in **airflow_default** network when running on docker in order to commuicate with each other.
+
+## Makefile
+Project use makefile to start up / shut down multiple containers in Docker for orchestration.
 
 ## Orchestration
 
 [Airflow](https://airflow.apache.org/) is a tool to manage entire workflow including DataOps and MLOps. The goal is to trigger tasks such as data flow task, ML flow task.
 
-### LabelingOps
-Labeling operation flow involved human labeling. In addition import raw data from source and export data to destination(storage).
+### Labeling
+Labeling operation flow involved human labeling. In addition importing raw data from source(storage) and exporting data to destination(storage).
 
 - **Tool**:
-[Label Studio](https://labelstud.io/) is a tool for labeling data. As data coming in as form of image without label, human menual is required to label these image. Allow operation through web api.
+[Label Studio](https://labelstud.io/) is a tool for labeling data. As data coming in as form of image without label, human menual is required to label these image. Allow operation through web API.
 
 - **Integration**:
-[Label Studio](https://labelstud.io/) import/export storage require menual operation in order to sync data from souce or export labelled data to destination. Through web api, airflow is able to trigger syncing process for import and export storage. Airflow can trigger final data export as lablled CSV or JSON file and save it in data storage.
+[Label Studio](https://labelstud.io/) import datasets or export lablled datasets require menual operation through web UI. Label Studio provide web API which allow airflow trigger import/export syncing process. Airflow can trigger export annotation as a labelled datasets in CSV or JSON file and save it in data storage.
+
+- **Cloud storage**:
+[Label Studio](https://labelstud.io/) can integrate with number of [storages](https://labelstud.io/guide/storage.html).
 
 ### DataOps
 
