@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Airbyte, Inc., all rights reserved.
+ * Copyright (c) 2023 Airbyte, Inc., all rights reserved.
  */
 
 package io.airbyte.test.utils;
@@ -25,6 +25,8 @@ import io.airbyte.api.client.model.generated.ConnectionScheduleType;
 import io.airbyte.api.client.model.generated.ConnectionState;
 import io.airbyte.api.client.model.generated.ConnectionStatus;
 import io.airbyte.api.client.model.generated.ConnectionUpdate;
+import io.airbyte.api.client.model.generated.CustomDestinationDefinitionCreate;
+import io.airbyte.api.client.model.generated.CustomSourceDefinitionCreate;
 import io.airbyte.api.client.model.generated.DestinationCreate;
 import io.airbyte.api.client.model.generated.DestinationDefinitionCreate;
 import io.airbyte.api.client.model.generated.DestinationDefinitionRead;
@@ -32,6 +34,7 @@ import io.airbyte.api.client.model.generated.DestinationDefinitionUpdate;
 import io.airbyte.api.client.model.generated.DestinationIdRequestBody;
 import io.airbyte.api.client.model.generated.DestinationRead;
 import io.airbyte.api.client.model.generated.DestinationSyncMode;
+import io.airbyte.api.client.model.generated.Geography;
 import io.airbyte.api.client.model.generated.JobConfigType;
 import io.airbyte.api.client.model.generated.JobDebugInfoRead;
 import io.airbyte.api.client.model.generated.JobIdRequestBody;
@@ -65,7 +68,7 @@ import io.airbyte.commons.temporal.scheduling.state.WorkflowState;
 import io.airbyte.commons.util.MoreProperties;
 import io.airbyte.db.Database;
 import io.airbyte.db.jdbc.JdbcUtils;
-import io.airbyte.test.airbyte_test_container.AirbyteTestContainer;
+import io.airbyte.test.container.AirbyteTestContainer;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.temporal.client.WorkflowClient;
@@ -93,6 +96,7 @@ import org.jooq.JSONB;
 import org.jooq.Record;
 import org.jooq.Result;
 import org.jooq.SQLDialect;
+import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -170,7 +174,7 @@ public class AirbyteAcceptanceTestHarness {
   private final UUID defaultWorkspaceId;
   private final String postgresSqlInitFile;
 
-  private KubernetesClient kubernetesClient = null;
+  private KubernetesClient kubernetesClient;
 
   private List<UUID> sourceIds;
   private List<UUID> connectionIds;
@@ -409,17 +413,18 @@ public class AirbyteAcceptanceTestHarness {
 
   private Set<SchemaTableNamePair> addAirbyteGeneratedTables(final boolean withScdTable, final Set<SchemaTableNamePair> sourceTables) {
     return sourceTables.stream().flatMap(x -> {
-      final String cleanedNameStream = x.tableName.replace(".", "_");
+      final String cleanedNameStream = x.tableName().replace(".", "_");
       final List<SchemaTableNamePair> explodedStreamNames = new ArrayList<>(List.of(
-          new SchemaTableNamePair(OUTPUT_NAMESPACE_PREFIX + x.schemaName,
+          new SchemaTableNamePair(OUTPUT_NAMESPACE_PREFIX + x.schemaName(),
               String.format("_airbyte_raw_%s%s", OUTPUT_STREAM_PREFIX, cleanedNameStream)),
-          new SchemaTableNamePair(OUTPUT_NAMESPACE_PREFIX + x.schemaName, String.format("%s%s", OUTPUT_STREAM_PREFIX, cleanedNameStream))));
+          new SchemaTableNamePair(OUTPUT_NAMESPACE_PREFIX + x.schemaName(), String.format("%s%s", OUTPUT_STREAM_PREFIX, cleanedNameStream))));
       if (withScdTable) {
         explodedStreamNames
-            .add(new SchemaTableNamePair("_airbyte_" + OUTPUT_NAMESPACE_PREFIX + x.schemaName,
+            .add(new SchemaTableNamePair("_airbyte_" + OUTPUT_NAMESPACE_PREFIX + x.schemaName(),
                 String.format("%s%s_stg", OUTPUT_STREAM_PREFIX, cleanedNameStream)));
         explodedStreamNames
-            .add(new SchemaTableNamePair(OUTPUT_NAMESPACE_PREFIX + x.schemaName, String.format("%s%s_scd", OUTPUT_STREAM_PREFIX, cleanedNameStream)));
+            .add(new SchemaTableNamePair(OUTPUT_NAMESPACE_PREFIX + x.schemaName(),
+                String.format("%s%s_scd", OUTPUT_STREAM_PREFIX, cleanedNameStream)));
       }
       return explodedStreamNames.stream();
     }).collect(Collectors.toSet());
@@ -456,6 +461,29 @@ public class AirbyteAcceptanceTestHarness {
     }
   }
 
+  /**
+   * Assert that the normalized destination matches the input records, only expecting a single id
+   * column.
+   *
+   * @param sourceRecords
+   * @throws Exception
+   */
+  public void assertNormalizedDestinationContainsIdColumn(final List<JsonNode> sourceRecords) throws Exception {
+    final Database destination = getDestinationDatabase();
+    final String finalDestinationTable = String.format("%spublic.%s%s", OUTPUT_NAMESPACE_PREFIX, OUTPUT_STREAM_PREFIX, STREAM_NAME.replace(".", "_"));
+    final List<JsonNode> destinationRecords = retrieveSourceRecords(destination, finalDestinationTable);
+
+    assertEquals(sourceRecords.size(), destinationRecords.size(),
+        String.format("destination contains: %s record. source contains: %s", sourceRecords.size(), destinationRecords.size()));
+
+    for (final JsonNode sourceStreamRecord : sourceRecords) {
+      assertTrue(
+          destinationRecords.stream()
+              .anyMatch(r -> r.get(COLUMN_ID).asInt() == sourceStreamRecord.get(COLUMN_ID).asInt()),
+          String.format("destination does not contain record:\n %s \n destination contains:\n %s\n", sourceStreamRecord, destinationRecords));
+    }
+  }
+
   public ConnectionRead createConnection(final String name,
                                          final UUID sourceId,
                                          final UUID destinationId,
@@ -463,6 +491,18 @@ public class AirbyteAcceptanceTestHarness {
                                          final AirbyteCatalog catalog,
                                          final ConnectionScheduleType scheduleType,
                                          final ConnectionScheduleData scheduleData)
+      throws ApiException {
+    return createConnectionWithGeography(name, sourceId, destinationId, operationIds, catalog, scheduleType, scheduleData, Geography.AUTO);
+  }
+
+  public ConnectionRead createConnectionWithGeography(final String name,
+                                                      final UUID sourceId,
+                                                      final UUID destinationId,
+                                                      final List<UUID> operationIds,
+                                                      final AirbyteCatalog catalog,
+                                                      final ConnectionScheduleType scheduleType,
+                                                      final ConnectionScheduleData scheduleData,
+                                                      final Geography geography)
       throws ApiException {
     final ConnectionRead connection = apiClient.getConnectionApi().createConnection(
         new ConnectionCreate()
@@ -476,7 +516,8 @@ public class AirbyteAcceptanceTestHarness {
             .name(name)
             .namespaceDefinition(NamespaceDefinitionType.CUSTOMFORMAT)
             .namespaceFormat(OUTPUT_NAMESPACE)
-            .prefix(OUTPUT_STREAM_PREFIX));
+            .prefix(OUTPUT_STREAM_PREFIX)
+            .geography(geography));
     connectionIds.add(connection.getConnectionId());
     return connection;
   }
@@ -491,6 +532,13 @@ public class AirbyteAcceptanceTestHarness {
             .connectionId(connectionId)
             .scheduleType(newScheduleType)
             .scheduleData(newScheduleData));
+  }
+
+  public void updateConnectionCatalog(final UUID connectionId, final AirbyteCatalog catalog) throws ApiException {
+    apiClient.getConnectionApi().updateConnection(
+        new ConnectionUpdate()
+            .connectionId(connectionId)
+            .syncCatalog(catalog));
   }
 
   public DestinationRead createPostgresDestination(final boolean isLegacy) throws ApiException {
@@ -558,8 +606,8 @@ public class AirbyteAcceptanceTestHarness {
     final Database destination = getDestinationDatabase();
     final Set<SchemaTableNamePair> namePairs = listAllTables(destination);
 
-    final String rawStreamName = String.format("_airbyte_raw_%s%s", OUTPUT_STREAM_PREFIX, pair.tableName.replace(".", "_"));
-    final SchemaTableNamePair rawTablePair = new SchemaTableNamePair(OUTPUT_NAMESPACE_PREFIX + pair.schemaName, rawStreamName);
+    final String rawStreamName = String.format("_airbyte_raw_%s%s", OUTPUT_STREAM_PREFIX, pair.tableName().replace(".", "_"));
+    final SchemaTableNamePair rawTablePair = new SchemaTableNamePair(OUTPUT_NAMESPACE_PREFIX + pair.schemaName(), rawStreamName);
     assertTrue(namePairs.contains(rawTablePair), "can't find a non-normalized version (raw) of " + rawTablePair.getFullyQualifiedTableName());
 
     return retrieveDestinationRecords(destination, rawTablePair.getFullyQualifiedTableName());
@@ -644,20 +692,24 @@ public class AirbyteAcceptanceTestHarness {
     return dbConfig;
   }
 
-  public SourceDefinitionRead createE2eSourceDefinition() throws ApiException {
-    return apiClient.getSourceDefinitionApi().createSourceDefinition(new SourceDefinitionCreate()
-        .name("E2E Test Source")
-        .dockerRepository("airbyte/source-e2e-test")
-        .dockerImageTag(SOURCE_E2E_TEST_CONNECTOR_VERSION)
-        .documentationUrl(URI.create("https://example.com")));
+  public SourceDefinitionRead createE2eSourceDefinition(final UUID workspaceId) throws ApiException {
+    return apiClient.getSourceDefinitionApi().createCustomSourceDefinition(new CustomSourceDefinitionCreate()
+        .workspaceId(workspaceId)
+        .sourceDefinition(new SourceDefinitionCreate()
+            .name("E2E Test Source")
+            .dockerRepository("airbyte/source-e2e-test")
+            .dockerImageTag(SOURCE_E2E_TEST_CONNECTOR_VERSION)
+            .documentationUrl(URI.create("https://example.com"))));
   }
 
-  public DestinationDefinitionRead createE2eDestinationDefinition() throws ApiException {
-    return apiClient.getDestinationDefinitionApi().createDestinationDefinition(new DestinationDefinitionCreate()
-        .name("E2E Test Destination")
-        .dockerRepository("airbyte/destination-e2e-test")
-        .dockerImageTag(DESTINATION_E2E_TEST_CONNECTOR_VERSION)
-        .documentationUrl(URI.create("https://example.com")));
+  public DestinationDefinitionRead createE2eDestinationDefinition(final UUID workspaceId) throws ApiException {
+    return apiClient.getDestinationDefinitionApi().createCustomDestinationDefinition(new CustomDestinationDefinitionCreate()
+        .workspaceId(workspaceId)
+        .destinationDefinition(new DestinationDefinitionCreate()
+            .name("E2E Test Destination")
+            .dockerRepository("airbyte/destination-e2e-test")
+            .dockerImageTag(DESTINATION_E2E_TEST_CONNECTOR_VERSION)
+            .documentationUrl(URI.create("https://example.com"))));
   }
 
   public SourceRead createPostgresSource(final boolean isLegacy) throws ApiException {
@@ -715,7 +767,7 @@ public class AirbyteAcceptanceTestHarness {
     final Database database = getSourceDatabase();
     final Set<SchemaTableNamePair> pairs = listAllTables(database);
     for (final SchemaTableNamePair pair : pairs) {
-      database.query(context -> context.execute(String.format("DROP TABLE %s.%s", pair.schemaName, pair.tableName)));
+      database.query(context -> context.execute(String.format("DROP TABLE %s.%s", pair.schemaName(), pair.tableName())));
     }
   }
 
@@ -723,7 +775,7 @@ public class AirbyteAcceptanceTestHarness {
     final Database database = getDestinationDatabase();
     final Set<SchemaTableNamePair> pairs = listAllTables(database);
     for (final SchemaTableNamePair pair : pairs) {
-      database.query(context -> context.execute(String.format("DROP TABLE %s.%s CASCADE", pair.schemaName, pair.tableName)));
+      database.query(context -> context.execute(String.format("DROP TABLE %s.%s CASCADE", pair.schemaName(), pair.tableName())));
     }
   }
 
@@ -832,10 +884,19 @@ public class AirbyteAcceptanceTestHarness {
     }
 
     JobRead mostRecentSyncJob = getMostRecentSyncJobId(connectionId);
-    while (mostRecentSyncJob.getId().equals(lastJob.getId())) {
+    int count = 0;
+    while (count < 60 && mostRecentSyncJob.getId().equals(lastJob.getId())) {
       Thread.sleep(Duration.ofSeconds(1).toMillis());
       mostRecentSyncJob = getMostRecentSyncJobId(connectionId);
+      ++count;
     }
+    final boolean exceeded60seconds = count >= 60;
+    if (exceeded60seconds) {
+      // Fail because taking more than 60seconds to start a job is not expected
+      // Returning the current mostRecencSyncJob here could end up hiding some issues
+      Assertions.fail("unable to find the next job within 60seconds");
+    }
+
     return mostRecentSyncJob;
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Airbyte, Inc., all rights reserved.
+ * Copyright (c) 2023 Airbyte, Inc., all rights reserved.
  */
 
 package io.airbyte.workers.config;
@@ -13,7 +13,6 @@ import io.airbyte.persistence.job.errorreporter.JobErrorReportingClient;
 import io.airbyte.persistence.job.errorreporter.LoggingJobErrorReportingClient;
 import io.airbyte.persistence.job.errorreporter.SentryExceptionHelper;
 import io.airbyte.persistence.job.errorreporter.SentryJobErrorReportingClient;
-import io.airbyte.workers.normalization.NormalizationRunnerFactory;
 import io.micronaut.context.annotation.Factory;
 import io.micronaut.context.annotation.Requires;
 import io.micronaut.context.annotation.Value;
@@ -59,8 +58,6 @@ public class JobErrorReportingBeanFactory {
         configRepository,
         deploymentMode,
         airbyteVersion,
-        NormalizationRunnerFactory.BASE_NORMALIZATION_IMAGE_NAME,
-        NormalizationRunnerFactory.NORMALIZATION_VERSION,
         webUrlHelper,
         jobErrorReportingClient.orElseGet(() -> new LoggingJobErrorReportingClient()));
   }

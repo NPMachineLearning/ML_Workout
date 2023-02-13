@@ -1,38 +1,6 @@
 version: "3.7"
 
 services:
-  # init:
-  #   networks:
-  #     - airflow_default
-
-  # bootloader:
-  #   networks:
-  #     - airflow_default
-
-  # db:
-  #   networks:
-  #     - airflow_default
-
-  # worker:
-  #   networks:
-  #     - airflow_default
-
-  # server:
-  #   networks:
-  #     - airflow_default
-
-  # webapp:
-  #   networks:
-  #     - airflow_default
-
-  # airbyte-temporal:
-  #   networks:
-  #     - airflow_default
-
-  # airbyte-cron:
-  #   networks:
-  #     - airflow_default
-
   airbyte-proxy:
     networks:
       - airflow_default

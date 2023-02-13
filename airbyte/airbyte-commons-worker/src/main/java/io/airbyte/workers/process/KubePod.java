@@ -1,10 +1,8 @@
 /*
- * Copyright (c) 2022 Airbyte, Inc., all rights reserved.
+ * Copyright (c) 2023 Airbyte, Inc., all rights reserved.
  */
 
 package io.airbyte.workers.process;
-
-import java.util.concurrent.TimeUnit;
 
 public interface KubePod {
 
@@ -12,10 +10,10 @@ public interface KubePod {
 
   void destroy();
 
-  boolean waitFor(final long timeout, final TimeUnit unit) throws InterruptedException;
-
   int waitFor() throws InterruptedException;
 
   KubePodInfo getInfo();
+
+  Process toProcess();
 
 }

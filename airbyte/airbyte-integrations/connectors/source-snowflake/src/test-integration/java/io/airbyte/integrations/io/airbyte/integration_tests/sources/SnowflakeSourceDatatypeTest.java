@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Airbyte, Inc., all rights reserved.
+ * Copyright (c) 2023 Airbyte, Inc., all rights reserved.
  */
 
 package io.airbyte.integrations.io.airbyte.integration_tests.sources;
@@ -196,6 +196,14 @@ public class SnowflakeSourceDatatypeTest extends AbstractSourceDatabaseTypeTest 
             .airbyteType(JsonSchemaType.NUMBER)
             .addInsertValues("'NaN'", "'inf'", "'-inf'")
             .addExpectedValues("NaN", "Infinity", "-Infinity")
+            .build());
+    addDataTypeTestData(
+        TestDataHolder.builder()
+            .sourceType("NUMBER")
+            .airbyteType(JsonSchemaType.INTEGER)
+            .fullSourceDataType("NUMBER(38,0)")
+            .addInsertValues("9", "990", "9990", "999000", "999000000", "999000000000")
+            .addExpectedValues("9", "990", "9990", "999000", "999000000", "999000000000")
             .build());
 
     // Data Types for Text Strings

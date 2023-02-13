@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Airbyte, Inc., all rights reserved.
+ * Copyright (c) 2023 Airbyte, Inc., all rights reserved.
  */
 
 package io.airbyte.workers.sync;
@@ -44,7 +44,10 @@ public class NormalizationLauncherWorker extends LauncherWorker<NormalizationInp
         activityContext,
         serverPort,
         temporalUtils,
-        workerConfigs);
+        workerConfigs,
+        // Normalization process will happen only on a fixed set of connectors,
+        // thus they are not going to be run under custom connectors. Setting this to false.
+        false);
 
   }
 

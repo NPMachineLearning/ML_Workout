@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Airbyte, Inc., all rights reserved.
+ * Copyright (c) 2023 Airbyte, Inc., all rights reserved.
  */
 
 package io.airbyte.workers.sync;
@@ -54,7 +54,8 @@ public class ReplicationLauncherWorker extends LauncherWorker<StandardSyncInput,
         activityContext,
         serverPort,
         temporalUtils,
-        workerConfigs);
+        workerConfigs,
+        sourceLauncherConfig.getIsCustomConnector() || destinationLauncherConfig.getIsCustomConnector());
   }
 
 }
