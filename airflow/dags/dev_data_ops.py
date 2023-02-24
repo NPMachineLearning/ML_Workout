@@ -1,5 +1,6 @@
 from airflow.decorators import dag, task
 from airflow.utils.dates import days_ago
+from airflow.operators.bash import BashOperator
 from airflow.providers.airbyte.operators.airbyte import AirbyteTriggerSyncOperator
 from dataops_utils.label_studio_utils import sync_export_storage,  export_annotation
 from dataops_utils.sftp_utils import write_csv_to_sftp
@@ -33,6 +34,11 @@ def dev_data_ops():
         wait_seconds=3
     )
 
+    dbt_transform = BashOperator(
+        task_id="dbt_transform",
+        bash_command='docker exec -it dbt "dbt --help"'
+    )
+
     # sync label studio export storage
     result = sync_export_storage()
 
@@ -48,6 +54,6 @@ def dev_data_ops():
         user_password=SFTP_PASSWORD)
     
     # trigger airbyte extract and load
-    result >> extract_and_load
+    result >> extract_and_load >> dbt_transform
 
 dev_data_flow = dev_data_ops()

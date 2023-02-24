@@ -1,7 +1,13 @@
 version: "3.7"
 
 services:
-  dbt:
-    image: xemuliam/dbt
-    container_name: dbt
-    command: dbt init dbt_transform
+  dbt_server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dbt-server
+    command: [ "dbt-rpc", "serve" ]
+    ports:
+      - 8083:8580
+    volumes:
+      - ./dbt_transforms:/app
