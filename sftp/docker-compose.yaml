@@ -4,7 +4,7 @@ services:
   sftp:
     # https://hub.docker.com/r/atmoz/sftp
     image: atmoz/sftp
-    container_name: sftp
+    container_name: SFTP
     ports:
       - 22:22
     # volumes:

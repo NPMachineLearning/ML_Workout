@@ -1,1 +1,5 @@
 airflow/logs/
+
+dbt/dbt_transforms/dbt_packages/
+dbt/dbt_transforms/logs/
+dbt/dbt_transforms/target/

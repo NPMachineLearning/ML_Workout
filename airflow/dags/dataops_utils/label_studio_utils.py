@@ -7,7 +7,7 @@ import requests
 
 # project id from label-studio
 LABEL_STUDIO_PROJECT_ID = 2
-LABEL_STUDIO_URL = "http://label-studio:8080"
+LABEL_STUDIO_URL = "http://LabelStudio:8080"
 LABEL_STUDIO_TOKEN = "8823cc4fb910406253548fac3c458e495d6de86c"
 LABEL_STUDIO_DEFAULT_EXPORT_TYPE = "CSV"
 

@@ -8,5 +8,5 @@ dbt_transforms:
       password: password
       port: 5432
       dbname: ml_workout
-      schema: dbt_ml_workout
+      schema: public
       threads: 1

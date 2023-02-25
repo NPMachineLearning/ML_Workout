@@ -1,9 +1,9 @@
 from airflow.decorators import dag, task
 from airflow.utils.dates import days_ago
-from airflow.operators.bash import BashOperator
 from airflow.providers.airbyte.operators.airbyte import AirbyteTriggerSyncOperator
 from dataops_utils.label_studio_utils import sync_export_storage,  export_annotation
 from dataops_utils.sftp_utils import write_csv_to_sftp
+from dataops_utils.dbt_utils import dbt_transforms
 import logging
 
 default_args = {
@@ -12,7 +12,7 @@ default_args = {
 
 AIRBYTE_CONN_ID = "0f87b214-0d03-45b5-a72e-58382657a9c4"
 
-SFTP_HOSTNAME = "sftp"
+SFTP_HOSTNAME = "SFTP"
 SFTP_USERNAME = "usr"
 SFTP_PASSWORD = "pass"
 
@@ -34,19 +34,14 @@ def dev_data_ops():
         wait_seconds=3
     )
 
-    dbt_transform = BashOperator(
-        task_id="dbt_transform",
-        bash_command='docker exec -it dbt "dbt --help"'
-    )
-
     # sync label studio export storage
-    result = sync_export_storage()
+    sync_storage_result = sync_export_storage()
 
     # export annotation from label studio
-    resp_csv =  result >> export_annotation(export_type="CSV")
+    resp_csv =  sync_storage_result >> export_annotation(export_type="CSV")
 
     # save csv to sftp aka mimic DataLake
-    result = write_csv_to_sftp(
+    write_csv_result = write_csv_to_sftp(
         csv_data=resp_csv, 
         filename="ml_workout.csv", 
         host_name=SFTP_HOSTNAME, 
@@ -54,6 +49,9 @@ def dev_data_ops():
         user_password=SFTP_PASSWORD)
     
     # trigger airbyte extract and load
-    result >> extract_and_load >> dbt_transform
+    extract_load_result = write_csv_result >> extract_and_load
+
+    # trigger dbt data transformation
+    extract_load_result >> dbt_transforms()
 
 dev_data_flow = dev_data_ops()

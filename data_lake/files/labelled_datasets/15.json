@@ -1,0 +1,54 @@
+{
+  "id": 15,
+  "created_username": " tomneo2004@gmail.com, 1",
+  "created_ago": "8\u00a0minutes",
+  "completed_by": {
+    "id": 1,
+    "first_name": "",
+    "last_name": "",
+    "email": "tomneo2004@gmail.com"
+  },
+  "task": {
+    "id": 19,
+    "data": {
+      "image": "/data/upload/2/ec8aa1f3-oYDbf5hQAePHEBNZTQMXRA.jpg"
+    },
+    "meta": {},
+    "created_at": "2023-02-25T06:24:35.047601Z",
+    "updated_at": "2023-02-25T06:24:48.279863Z",
+    "is_labeled": true,
+    "overlap": 1,
+    "inner_id": 15,
+    "total_annotations": 1,
+    "cancelled_annotations": 0,
+    "total_predictions": 0,
+    "comment_count": 0,
+    "unresolved_comment_count": 0,
+    "last_comment_updated_at": null,
+    "project": 2,
+    "updated_by": 1,
+    "file_upload": 1,
+    "comment_authors": []
+  },
+  "result": [
+    {
+      "value": {
+        "choices": [
+          "PushUp"
+        ]
+      },
+      "id": "s5g0H4wE45",
+      "from_name": "choice",
+      "to_name": "image",
+      "type": "choices",
+      "origin": "manual"
+    }
+  ],
+  "was_cancelled": false,
+  "ground_truth": false,
+  "created_at": "2023-02-25T06:24:47.898454Z",
+  "updated_at": "2023-02-25T06:24:47.898485Z",
+  "lead_time": 5.935,
+  "parent_prediction": null,
+  "parent_annotation": null
+}
